@@ -34,6 +34,8 @@
 #include "GameMode/PPSaveGameSubsystem.h"
 #include "GameMode/PPSaveGame.h"
 
+#include "Component/PPPlayerFSMComponent.h"
+
 APPCharacterPlayer::APPCharacterPlayer()
 {
 	// Input
@@ -177,6 +179,9 @@ APPCharacterPlayer::APPCharacterPlayer()
 		ElectricChargingLevelWidgetComponent->SetDrawSize(FVector2D{ 256.0f, 128.0f });
 		ElectricChargingLevelWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	// PlayerFSMComponent
+	PlayerFSMComponent = CreateDefaultSubobject<UPPPlayerFSMComponent>(TEXT("PlayerFSMComponent"));
 }
 
 void APPCharacterPlayer::OnDeath(uint8 bIsDead)
@@ -391,16 +396,7 @@ void APPCharacterPlayer::SetCharacterControlData(const UPPCharacterControlData* 
 
 void APPCharacterPlayer::Move(const FInputActionValue& Value)
 {
-	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	AddMovementInput(ForwardDirection, MovementVector.X);
-	AddMovementInput(RightDirection, MovementVector.Y);
+	PlayerFSMComponent->HandleMove(Value);
 }
 
 void APPCharacterPlayer::Look(const FInputActionValue& Value)
@@ -452,27 +448,12 @@ void APPCharacterPlayer::ButtonInteraction(const FInputActionValue& Value)
 
 void APPCharacterPlayer::OnRunningStart(const FInputActionValue& Value)
 {
-	// Set Player Max Walk Speed for Running.
-	if (!this->bIsRunning)
-	{
-		float RunnigSpeed = this->MaxWalkSpeed* RunningMultiplier;
-		// Here is Running Max Walk Speed. You can Setting Running Max Walk Speed.
-		UCharacterMovementComponent* Movement = GetCharacterMovement();
-		if (IsValid(Movement))
-		{
-			Movement->MaxWalkSpeed = RunnigSpeed;
-		}
-		this->bIsRunning = true;
-		UE_LOG(LogTemp, Log, TEXT("Running Start"));
-	}
+	PlayerFSMComponent->HandleRunStart();
 }
 
 void APPCharacterPlayer::OnRunningEnd(const FInputActionValue& Value)
 {
-	// Set Player Max Walk Speed to Default Max Walk Speed.
-	GetCharacterMovement()->MaxWalkSpeed /= RunningMultiplier;
-	this->bIsRunning = false;
-	UE_LOG(LogTemp, Log, TEXT("Running End"));
+	PlayerFSMComponent->HandleRunEnd();
 }
 
 void APPCharacterPlayer::SetFOVBySpeed(float DeltaTime)
@@ -498,6 +479,18 @@ void APPCharacterPlayer::InitInputSettings()
 	}
 }
 
+void APPCharacterPlayer::ApplyMovement(const FVector2D& MovementVector)
+{
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	AddMovementInput(ForwardDirection, MovementVector.X);
+	AddMovementInput(RightDirection, MovementVector.Y);
+}
+
 void APPCharacterPlayer::SetMaxWalkSpeed(float InMaxWalkSpeed)
 {
 	MaxWalkSpeed = InMaxWalkSpeed;
@@ -514,6 +507,31 @@ void APPCharacterPlayer::SetMaxWalkSpeed(float InMaxWalkSpeed)
 void APPCharacterPlayer::SetRunning(bool InIsRunning)
 {
 	bIsRunning = InIsRunning;
+
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	if (!IsValid(Movement))
+	{
+		return;
+	}
+
+	if (bIsRunning)
+	{
+		float RunnigSpeed = this->MaxWalkSpeed * RunningMultiplier;
+		// Here is Running Max Walk Speed. You can Setting Running Max Walk Speed.
+		Movement->MaxWalkSpeed = RunnigSpeed;
+		UE_LOG(LogTemp, Log, TEXT("Running Start"));
+	}
+	else
+	{
+		Movement->MaxWalkSpeed /= RunningMultiplier;
+		UE_LOG(LogTemp, Log, TEXT("Running End"));
+	}
+
+}
+
+bool APPCharacterPlayer::IsRunning() const
+{
+	return bIsRunning;
 }
 
 void APPCharacterPlayer::SetMouseSensitivity(float NewMouseSensitivity)

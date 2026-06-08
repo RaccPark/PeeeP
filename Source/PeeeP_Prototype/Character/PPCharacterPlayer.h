@@ -95,9 +95,12 @@ protected:
 	void InitInputSettings();
 
 public:
+	void ApplyMovement(const FVector2D& MovementVector);
+
 	void SetMaxWalkSpeed(float InMaxWalkSpeed);
 
 	void SetRunning(bool InIsRunning);
+	bool IsRunning() const;
 
 	void SetMouseSensitivity(float NewMouseSensitivity);
 
@@ -190,6 +193,10 @@ protected:
 	//InventoryComponent
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Electric)
 	TObjectPtr<class UPPInventoryComponent> InventoryComponent;
+
+	// FSM Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Electric)
+	TObjectPtr<class UPPPlayerFSMComponent> PlayerFSMComponent;
 
 public:
 	void ReduationMaxWalkSpeedRatio(float InReductionRatio);
