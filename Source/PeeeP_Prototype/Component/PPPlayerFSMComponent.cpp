@@ -10,10 +10,9 @@
 #include "Component/PlayerState/PPPlayerStateRun.h"
 //#include "Component/PlayerState/PPPlayerStateJump.h"
 //#include "Component/PlayerState/PPPlayerStateFall.h"
-//#include "Component/PlayerState/PPPlayerStateCharge.h"
-//#include "Component/PlayerState/PPPlayerStateDischarge.h"
-//#include "Component/PlayerState/PPPlayerStateDamaged.h"
-//#include "Component/PlayerState/PPPlayerStateDead.h"
+#include "Component/PlayerState/PPPlayerStateCharge.h"
+#include "Component/PlayerState/PPPlayerStateHit.h"
+#include "Component/PlayerState/PPPlayerStateDead.h"
 
 // Sets default values for this component's properties
 UPPPlayerFSMComponent::UPPPlayerFSMComponent()
@@ -44,6 +43,19 @@ void UPPPlayerFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	if (CurrentState)
 	{
 		CurrentState->Update(DeltaTime);
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			1,
+			0.0f,
+			FColor::Green,
+			FString::Printf(
+				TEXT("State : %s"),
+				*GetCurrentStateName()
+			)
+		);
 	}
 }
 
@@ -109,6 +121,11 @@ EPlayerStateType UPPPlayerFSMComponent::GetCurrentStateType() const
 	return CurrentStateType;
 }
 
+FString UPPPlayerFSMComponent::GetCurrentStateName() const
+{
+	return StaticEnum<EPlayerStateType>()->GetNameStringByValue((int64)CurrentStateType);
+}
+
 void UPPPlayerFSMComponent::InitializeFSM()
 {
 	OwnerPlayer = Cast<APPCharacterPlayer>(GetOwner());
@@ -124,13 +141,19 @@ void UPPPlayerFSMComponent::InitializeFSM()
 
 void UPPPlayerFSMComponent::CreateStates()
 {
-	UPPPlayerStateIdle* IdleState = NewObject<UPPPlayerStateIdle>(this);
-	UPPPlayerStateWalk* WalkState = NewObject<UPPPlayerStateWalk>(this);
-	UPPPlayerStateRun* RunState = NewObject<UPPPlayerStateRun>(this);
+	UPPPlayerStateIdle* IdleState		= NewObject<UPPPlayerStateIdle>(this);
+	UPPPlayerStateWalk* WalkState		= NewObject<UPPPlayerStateWalk>(this);
+	UPPPlayerStateRun* RunState			= NewObject<UPPPlayerStateRun>(this);
+	UPPPlayerStateCharge* ChargeState	= NewObject<UPPPlayerStateCharge>(this);
+	UPPPlayerStateHit* HitState			= NewObject<UPPPlayerStateHit>(this);
+	UPPPlayerStateDead* DeadState		= NewObject<UPPPlayerStateDead>(this);
 
 	PlayerStateMap.Add(EPlayerStateType::Idle, IdleState);
 	PlayerStateMap.Add(EPlayerStateType::Walk, WalkState);
 	PlayerStateMap.Add(EPlayerStateType::Run, RunState);
+	PlayerStateMap.Add(EPlayerStateType::Charge, ChargeState);
+	PlayerStateMap.Add(EPlayerStateType::Hit, HitState);
+	PlayerStateMap.Add(EPlayerStateType::Dead, DeadState);
 
 	// Initialize stats
 	for (auto& State : PlayerStateMap)

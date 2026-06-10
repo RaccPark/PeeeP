@@ -51,7 +51,7 @@ protected:
 	float CurrentElectricCapacity;	// ������Ʈ(�÷��̾�)�� ���� �������� ���ⷮ
 	float MaxElectricCapacity;		// ������Ʈ(�÷��̾�)�� �ִ� ������ �� �ִ� ���ⷮ
 
-	bool bElectricIsEmpty;			// ���� ���� ���ⷮ�� ���� ���
+	bool bElectricIsEmpty;			
 
 	int8 CurrentChargeLevel;
 	int8 MaxChargeLevel;
@@ -107,6 +107,8 @@ public:
 	const float GetCurrentCapacity();
 
 	void CancelCharging();
+
+	bool bDeadTriggerd;
 
 public:
 	void BroadCastToUI();

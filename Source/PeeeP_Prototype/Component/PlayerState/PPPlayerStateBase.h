@@ -29,6 +29,9 @@ public:
 	virtual void HandleRunStart();
 	virtual void HandleRunEnd();
 
+	virtual void HandleChargeStart();
+	virtual void HandleChargeEnd();
+
 protected:
 	UPROPERTY()
 	TObjectPtr<class APPCharacterPlayer> OwnerPlayer;

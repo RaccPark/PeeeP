@@ -14,11 +14,8 @@ enum class EPlayerStateType : uint8
 	Idle,
 	Walk,
 	Run,
-	Jump,
-	Fall,
-	Charge,
-	Discharge,
-	Damaged,
+	Charge, // Discharge는 Charge에서 발생하는 이벤트
+	Hit,
 	Dead
 };
 
@@ -49,6 +46,7 @@ public:
 	void HandleRunEnd();
 
 	EPlayerStateType GetCurrentStateType() const;
+	FString GetCurrentStateName() const;
 
 protected:
 	void InitializeFSM();

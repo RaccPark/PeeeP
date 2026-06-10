@@ -20,5 +20,8 @@ public:
 	virtual void Exit() override;
 	virtual void HandleMove(const struct FInputActionValue& Value) override;
 	virtual void HandleJump() override;
+
+	virtual void HandleChargeStart() override;
+	virtual void HandleChargeEnd() override;
 };
  

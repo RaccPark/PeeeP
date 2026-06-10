@@ -38,3 +38,8 @@ void UPPPlayerStateWalk::HandleRunStart()
 {
 	OwnerFSM->ChangeState(EPlayerStateType::Run);
 }
+
+void UPPPlayerStateWalk::HandleChargeStart()
+{
+	OwnerFSM->ChangeState(EPlayerStateType::Charge);
+}

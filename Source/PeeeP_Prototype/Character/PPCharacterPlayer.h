@@ -25,6 +25,7 @@ public:
 	APPCharacterPlayer();
 	
 	void OnDeath(uint8 bIsDead);
+	void HandleDeath();
 	float GetMaxWalkSpeed() const { return MaxWalkSpeed; }
 protected:
 	void PlayRespawnSequence();
@@ -102,6 +103,9 @@ public:
 	void SetRunning(bool InIsRunning);
 	bool IsRunning() const;
 
+	void OnChargeStart();
+	void OnChargeEnd();
+
 	void SetMouseSensitivity(float NewMouseSensitivity);
 
 protected:
@@ -175,9 +179,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Effect)
 	TObjectPtr<class USoundBase> DeadSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
-	TObjectPtr<class UAnimMontage> HitAnimMontage;
-
 	float ChargeTime;
 
 public:
@@ -208,6 +209,7 @@ public:
 	// Getter
 	// InventoryComponent(IPPInventoryInterface에 의해)
 	virtual class UPPInventoryComponent* GetInventoryComponent() override;
+	class UPPPlayerFSMComponent* GetPlayerFSMComponent() const;
 
 protected:
 
@@ -248,6 +250,9 @@ public:
 
 public:
 	virtual void TakeDamage(float Amount, bool bPlayAnim);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> HitAnimMontage;
 
 private:
 

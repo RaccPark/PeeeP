@@ -35,3 +35,13 @@ void UPPPlayerStateIdle::HandleMove(const FInputActionValue& Value)
 void UPPPlayerStateIdle::HandleJump()
 {
 }
+
+void UPPPlayerStateIdle::HandleChargeStart()
+{
+	OwnerFSM->ChangeState(EPlayerStateType::Charge);
+}
+
+void UPPPlayerStateIdle::HandleChargeEnd()
+{
+	OwnerFSM->ChangeState(EPlayerStateType::Idle);
+}

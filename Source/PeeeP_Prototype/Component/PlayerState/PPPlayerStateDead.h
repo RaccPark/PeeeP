@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Component/PlayerState/PPPlayerStateBase.h"
-#include "PPPlayerStateRun.generated.h"
+#include "PPPlayerStateDead.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PEEEP_PROTOTYPE_API UPPPlayerStateRun : public UPPPlayerStateBase
+class PEEEP_PROTOTYPE_API UPPPlayerStateDead : public UPPPlayerStateBase
 {
 	GENERATED_BODY()
 	
@@ -18,9 +18,6 @@ public:
 	virtual void Enter() override;
 	virtual void Update(float DeltaTime) override;
 	virtual void Exit() override;
-	virtual void HandleMove(const struct FInputActionValue& Value) override;
-	virtual void HandleJump() override;
 
-	virtual void HandleRunEnd() override;
-	virtual void HandleChargeStart() override;
+
 };

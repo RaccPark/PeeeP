@@ -38,3 +38,11 @@ void UPPPlayerStateBase::HandleRunStart()
 void UPPPlayerStateBase::HandleRunEnd()
 {
 }
+
+void UPPPlayerStateBase::HandleChargeStart()
+{
+}
+
+void UPPPlayerStateBase::HandleChargeEnd()
+{
+}

@@ -186,6 +186,19 @@ APPCharacterPlayer::APPCharacterPlayer()
 
 void APPCharacterPlayer::OnDeath(uint8 bIsDead)
 {
+	if (!bIsDead)
+	{
+		SetDefaultMeshAndAnim();
+		UPPAnimInstance* AnimInstance = Cast<UPPAnimInstance>(GetMesh()->GetAnimInstance());
+		AnimInstance->SetbIsDead(false);
+		return;
+	}
+
+	PlayerFSMComponent->ChangeState(EPlayerStateType::Dead);
+}
+
+void APPCharacterPlayer::HandleDeath()
+{
 	SetDefaultMeshAndAnim();
 
 	UPPAnimInstance* AnimInstance = Cast<UPPAnimInstance>(GetMesh()->GetAnimInstance());
@@ -196,28 +209,24 @@ void APPCharacterPlayer::OnDeath(uint8 bIsDead)
 			AnimInstance->Montage_Stop(0, HitAnimMontage);
 		}
 
-		AnimInstance->SetbIsDead(bIsDead);
+		AnimInstance->SetbIsDead(true);
 		APlayerController* PlayerController = Cast<APlayerController>(GetController());
-		if (bIsDead)
+		if (!GetWorldTimerManager().IsTimerActive(RespawnTimerHandle))
 		{
-			if (!GetWorldTimerManager().IsTimerActive(RespawnTimerHandle))
-			{
-				InventoryComponent->ClearUsingItem();
-				ElectricDischargeComponent->CancelCharging();
-				RemoveParts();
-				PlayEquipEffect();
-				PlayDeadSound();
+			InventoryComponent->ClearUsingItem();
+			ElectricDischargeComponent->CancelCharging();
+			RemoveParts();
+			PlayEquipEffect();
+			PlayDeadSound();
 
-				if (IsValid(PlayerController))
-				{
-					this->DisableInput(PlayerController);
-				}
-				GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &APPCharacterPlayer::PlayRespawnSequence, 2.25f, false);
-				
+			if (IsValid(PlayerController))
+			{
+				this->DisableInput(PlayerController);
 			}
+			GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &APPCharacterPlayer::PlayRespawnSequence, 2.25f, false);
+
 		}
 	}
-	
 }
 
 void APPCharacterPlayer::PlayRespawnSequence()
@@ -534,6 +543,26 @@ bool APPCharacterPlayer::IsRunning() const
 	return bIsRunning;
 }
 
+void APPCharacterPlayer::OnChargeStart()
+{
+	if (!PlayerFSMComponent)
+	{
+		return;
+	}
+
+	PlayerFSMComponent->ChangeState(EPlayerStateType::Charge);
+}
+
+void APPCharacterPlayer::OnChargeEnd()
+{
+	if (!PlayerFSMComponent)
+	{
+		return;
+	}
+
+	PlayerFSMComponent->ChangeState(EPlayerStateType::Idle);
+}
+
 void APPCharacterPlayer::SetMouseSensitivity(float NewMouseSensitivity)
 {
 	MouseSensitivity = NewMouseSensitivity;
@@ -740,16 +769,14 @@ void APPCharacterPlayer::PlayDeadSound()
 
 void APPCharacterPlayer::TakeDamage(float Amount, bool bPlayAnim)
 {
-	if (bPlayAnim)
+	if (bPlayAnim && PlayerFSMComponent && !ElectricDischargeComponent->bDeadTriggerd)
 	{
-		if (IsValid(Parts))
+		if (PlayerFSMComponent->GetCurrentStateType() == EPlayerStateType::Dead)
 		{
-			Parts->PlayHitAnimation();
+			return;
 		}
-		else
-		{
-			GetMesh()->GetAnimInstance()->Montage_Play(HitAnimMontage, 1.0f);
-		}
+
+		PlayerFSMComponent->ChangeState(EPlayerStateType::Hit);
 	}
 	
 	ElectricDischargeComponent->AddCurrentCapacity(-Amount);
@@ -852,6 +879,11 @@ UPPElectricDischargeComponent* APPCharacterPlayer::GetElectricDischargeComponent
 {
 	return ElectricDischargeComponent;
 
+}
+
+UPPPlayerFSMComponent* APPCharacterPlayer::GetPlayerFSMComponent() const
+{
+	return PlayerFSMComponent;
 }
 
 UWidgetComponent* APPCharacterPlayer::GetElectricChargingLevelWidgetComponent()

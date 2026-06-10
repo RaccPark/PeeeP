@@ -22,4 +22,6 @@ public:
 	virtual void HandleJump() override;
 
 	virtual void HandleRunStart() override;
+
+	virtual void HandleChargeStart() override;
 };

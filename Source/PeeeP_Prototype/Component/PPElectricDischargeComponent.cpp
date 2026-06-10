@@ -45,6 +45,7 @@ UPPElectricDischargeComponent::UPPElectricDischargeComponent()
 	CurrentElectricCapacity = 0.1f;
 	MaxElectricCapacity = 18.0f;
 	bElectricIsEmpty = false;
+	bDeadTriggerd = false;
 
 	DischargeEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
 	ElectricSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
@@ -123,14 +124,11 @@ void UPPElectricDischargeComponent::TickComponent(float DeltaTime, ELevelTick Ti
 		bElectricIsEmpty = true;
 	}
 
-	if (bElectricIsEmpty)
+	APPCharacterPlayer* OwnerCharacter = Cast<APPCharacterPlayer>(GetOwner());
+	if (bElectricIsEmpty && IsValid(OwnerCharacter) && !bDeadTriggerd)
 	{
-		APPCharacterPlayer* OwnerCharacter = Cast<APPCharacterPlayer>(GetOwner());
-		if (IsValid(OwnerCharacter))
-		{
-			OwnerCharacter->DeadEventDelegate.Execute(true);
-			//Reset();
-		}
+		bDeadTriggerd = true;
+		OwnerCharacter->DeadEventDelegate.Execute(true);
 	}
 }
 
@@ -159,6 +157,7 @@ void UPPElectricDischargeComponent::Charging()
 			//OwnerCharacter->ReduationMaxWalkSpeedRatio(MoveSpeedReductionRate);
 			// Set Visible Level Gauge
 			OwnerCharacter->GetElectricChargingLevelWidget()->SetVisibility(ESlateVisibility::Visible);
+			//OwnerCharacter->OnChargeStart();
 		}
 
 		bChargeStart = true;
@@ -264,6 +263,7 @@ void UPPElectricDischargeComponent::Discharge()
 		DischargeEffectComponent->Deactivate();
 		OwnerCharacter->RevertMaxWalkSpeed();
 		OwnerCharacter->GetElectricChargingLevelWidget()->SetVisibility(ESlateVisibility::Hidden);
+		//OwnerCharacter->OnChargeEnd();
 		return;
 	}
 
@@ -282,7 +282,6 @@ void UPPElectricDischargeComponent::Discharge()
 	}
 
 	AActor* Owner = GetOwner();
-
 	FCollisionQueryParams CollisionParam(SCENE_QUERY_STAT(ElectricDischarge), false, Owner);
 
 	if (DischargeMode == EDischargeMode::Capsule)
@@ -345,6 +344,7 @@ void UPPElectricDischargeComponent::Discharge()
 	if (OwnerCharacter)
 	{
 		OwnerCharacter->RevertMaxWalkSpeed();
+		OwnerCharacter->OnChargeEnd();
 	}
 
 	CurrentChargingTime = 0.0f;
@@ -434,7 +434,7 @@ void UPPElectricDischargeComponent::AddCurrentCapacity(float amount)
 		CurrentElectricCapacity += amount;
 		CurrentElectricCapacity = FMath::Clamp(CurrentElectricCapacity, 0, MaxElectricCapacity);
 		SetChargingEnable();
-		// UI�� ��ε�ĳ��Ʈ
+		
 		BroadCastToUI();
 	}
 }
@@ -501,6 +501,7 @@ void UPPElectricDischargeComponent::Reset()
 	CurrentElectricCapacity = 12.0f;
 	MaxElectricCapacity = 12.0f;
 	bElectricIsEmpty = false;
+	bDeadTriggerd = false;
 
 	if (AutoDischargeTimeHandler.IsValid())
 	{

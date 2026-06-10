@@ -11,6 +11,8 @@
 #include "Engine/PostProcessVolume.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameMode/PPPlayerController.h"
+#include "Character/PPCharacterPlayer.h"
+#include "Component/PPPlayerFSMComponent.h"
 
 
 APPPlayerState::APPPlayerState()
@@ -105,9 +107,11 @@ void APPPlayerState::ReturnInput()
 	if (IsValid(OwnerPlayerController))
 	{
 		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-		if (IsValid(PlayerPawn))
+		APPCharacterPlayer* PlayerCharacter = Cast<APPCharacterPlayer>(PlayerPawn);
+		if (IsValid(PlayerCharacter))
 		{
-			PlayerPawn->EnableInput(OwnerPlayerController);
+			PlayerCharacter->EnableInput(OwnerPlayerController);
+			PlayerCharacter->GetPlayerFSMComponent()->ChangeState(EPlayerStateType::Idle);
 		}
 	}
 }
